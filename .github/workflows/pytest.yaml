@@ -57,8 +57,8 @@ jobs:
     name: Publish to PyPI
     if: github.event_name == 'push' && github.ref == 'refs/tags/v*'
     needs: tests
-    uses: .github/workflows/publish.yaml@main
+    uses: ./.github/workflows/publish.yaml
     secrets:
       pypi-password: ${{ secrets.pypi-password }}
-      
+
 
