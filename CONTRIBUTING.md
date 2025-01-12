@@ -82,13 +82,13 @@ There are three scripts for handling the notebooks and their associated python:p
 
 ## Release
 
-_PyPi_
-adding a new tag will trigger a release on pypi. As example:
 
-```bash
-git tag v0.4.1
-git push origin tag v0.4.1
-```
+_PyPi_
+
+To relesase a new version on PyPi, you need to create new release on GitHub with a tag in v0.0.0 format(release should have the same name as a tag), then workflow ill automatically build and upload the package to PyPi. 
+
+Build artifacts would also be signed with Sigstore and added to the created release. The release should contain a changelog of the changes since the last release
+
 
 _Conda_
 When you make a release on pypi the conda-forge bot will automatically make a PR that updates the Conda feedstock to the new version. If new dependencies or pins are changed on dependencies, those changes will need to be added to the PR. If there is just a pure code change then all we have do to is merge in the PR and that will update the package on conda-forge. See https://conda-forge.org/docs/maintainer/updating_pkgs/ for more information

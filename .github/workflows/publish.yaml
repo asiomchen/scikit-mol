@@ -2,10 +2,10 @@ name: Publish Python🐍 distribution📦
 # after releasing a new version, build the distribution and uploads signed artifacts to GitHub Release
 on: 
   release:
-    types: [created]
+    types: [published]
 
 jobs:
-  build:
+  build-and-publish:
     name: Build distribution📦
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
-    - name: Set up Python
+    - name: Set up Python🐍
       uses: astral-sh/setup-uv@v5
       with:
         python-version: "3.9"
@@ -24,13 +24,18 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
+    - name: Publish package📦 to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
 
   github-release:
     name: >-
       Sign the distribution📦 with Sigstore
       and upload them to GitHub Release
     needs:
-    - build
+    - build-and-publish
     runs-on: ubuntu-latest
 
     permissions:
