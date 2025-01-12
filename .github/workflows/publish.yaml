@@ -1,4 +1,4 @@
-name: Publish Python🐍 distribution📦 with uv
+name: Publish Python🐍 distribution📦 with uv🌈
 # after releasing a new version, build the distribution and uploads signed artifacts to GitHub Release
 on:
   workflow_call:
@@ -60,7 +60,7 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: Sign the dists with Sigstore
+    - name: Sign the dists with Sigstore🔏
       uses: sigstore/gh-action-sigstore-python@v3.0.0
       with:
         inputs: >-
@@ -73,7 +73,7 @@ jobs:
           gh release create
           "$GITHUB_REF_NAME"
           --repo "$GITHUB_REPOSITORY"
-          --notes "Release $GITHUB_REF_NAME" ${{ inputs.is-draft && '--draft' || '' }}
+          --generate-notes ${{ inputs.is-draft && '--draft' || '' }}
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
