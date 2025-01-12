@@ -30,6 +30,16 @@ jobs:
     #   with:
     #     user: __token__
     #     password: ${{ secrets.pypi_password }}
+  callback:
+    name: Callback
+    runs-on: ubuntu-latest
+    if: ${{ ! startsWith(github.event.workflow_run.head_branch, 'refs/tags/v') }}
+    env:
+      TAG: ${{ github.event.workflow_run.head_branch }}
+    steps:
+    - name: Callback
+      run: echo "This is a callback for $TAG"
+
 
   github-release:
     name: >-
