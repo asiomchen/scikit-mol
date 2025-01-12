@@ -11,7 +11,11 @@ on:
         description: 'Python version to use'
         required: true
         default: '3.9'
-      
+      is-draft:
+        type: boolean
+        description: 'Is this a draft release?'
+        required: false
+        default: false
 
 jobs:
   build-and-publish:
@@ -69,7 +73,7 @@ jobs:
           gh release create
           "$GITHUB_REF_NAME"
           --repo "$GITHUB_REPOSITORY"
-          --notes ""
+          --notes "Release $GITHUB_REF_NAME" ${{ inputs.is-draft && '--draft' || '' }}
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}

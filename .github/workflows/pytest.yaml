@@ -60,6 +60,7 @@ jobs:
     uses: ./.github/workflows/publish.yaml
     with:
       python-version: "3.9"
+      is-draft: true
     secrets:
       pypi-password: ${{ secrets.pypi-password }}
 
