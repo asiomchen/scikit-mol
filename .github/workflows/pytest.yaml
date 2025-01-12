@@ -53,3 +53,12 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('tests/conftest.py') }}
       - name: Run Tests
         run: uv run pytest --cov=./scikit_mol .
+  publish:
+    name: Publish to PyPI
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v*'
+    needs: tests
+    uses: .github/workflows/publish.yaml@main
+    secrets:
+      pypi-password: ${{ secrets.pypi-password }}
+      
+
