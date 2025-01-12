@@ -1,18 +1,14 @@
 name: Publish Python🐍 distribution📦
-
+# after releasing a new version, build the distribution and uploads signed artifacts to GitHub Release
 on: 
-  workflow_dispatch:
-  workflow_run:
-    workflows: [scikit_mol ci]
-    types: [completed]
+  release:
+    types: [created]
 
 jobs:
   build:
     name: Build distribution📦
     runs-on: ubuntu-latest
-    if: >- 
-      github.event.workflow_run.conclusion == 'success' &&
-      contains(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
     - uses: actions/checkout@v4
       with:
@@ -53,14 +49,6 @@ jobs:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
-    - name: Create GitHub Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: >-
-        gh release create
-        "$GITHUB_REF_NAME"
-        --repo "$GITHUB_REPOSITORY"
-        --notes ""
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
