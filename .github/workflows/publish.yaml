@@ -9,11 +9,14 @@ jobs:
   build-and-publish:
     name: Build distribution📦
     runs-on: ubuntu-latest
-    if: startsWith(github.event.workflow_run.head_branch, 'refs/tags/v')
+    # workaround to retrieve the tag https://github.com/orgs/community/discussions/27124
+    if: startsWith(github.event.workflow_run.head_branch, 'v')
     steps:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+    - name: Debug
+      run: echo ${{ github }}
     - name: Set up Python🐍
       uses: astral-sh/setup-uv@v5
       with:
@@ -30,16 +33,6 @@ jobs:
     #   with:
     #     user: __token__
     #     password: ${{ secrets.pypi_password }}
-  callback:
-    name: Callback
-    runs-on: ubuntu-latest
-    if: ${{ ! startsWith(github.event.workflow_run.head_branch, 'refs/tags/v') }}
-    env:
-      TAG: ${{ github.event.workflow_run.head_branch }}
-    steps:
-    - name: Callback
-      run: echo "This is a callback for $TAG"
-
 
   github-release:
     name: >-
