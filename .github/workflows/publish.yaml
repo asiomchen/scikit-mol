@@ -5,6 +5,12 @@ on:
     secrets:
       pypi-password:
         required: true
+    inputs:
+      python-version:
+        type: string
+        description: 'Python version to use'
+        required: true
+        default: '3.9'
       
 
 jobs:
@@ -18,7 +24,7 @@ jobs:
     - name: Set up Python🐍
       uses: astral-sh/setup-uv@v5
       with:
-        python-version: "3.9"
+        python-version: ${{ inputs.python-version }}
     - name: Build a binary wheel and a source tarball
       run: uv build
     - name: Store the distribution packages
