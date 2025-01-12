@@ -9,6 +9,7 @@ jobs:
   build-and-publish:
     name: Build distribution📦
     runs-on: ubuntu-latest
+    if: startsWith(github.event.workflow_run.head_branch, 'refs/tags/v')
     steps:
     - uses: actions/checkout@v4
       with:
@@ -24,11 +25,11 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-    - name: Publish package📦 to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+    # - name: Publish package📦 to PyPI
+    #   uses: pypa/gh-action-pypi-publish@release/v1
+    #   with:
+    #     user: __token__
+    #     password: ${{ secrets.pypi_password }}
 
   github-release:
     name: >-
