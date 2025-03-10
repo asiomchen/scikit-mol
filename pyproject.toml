@@ -42,6 +42,11 @@ dependencies = [
 Download = "https://github.com/EBjerrum/scikit-mol"
 Homepage = "https://github.com/EBjerrum/scikit-mol"
 
+[project.optional-dependencies]
+serve = [
+    "fastapi[standard]>=0.115.8",
+]
+
 [tool.hatch]
 build.hooks.vcs.version-file = "scikit_mol/_version.py"
 version.source = "vcs"  # Get the version from git, eg: 0.0.6.dev0+g1234567
