@@ -11,7 +11,7 @@ from scikit_mol._version import __version__ as scikit_mol_version
 from scikit_mol.safeinference import set_safe_inference_mode
 from scikit_mol.serve.log import InvalidMolsLoggingTransformer, add_pipeline_logging
 
-from .models import PredictRequest, PredictResponse
+from .models import PredictRequest, PredictResponse, PredictProbaResponse, PredictProbaRequest
 from .utils import validate_pipeline
 
 
@@ -25,9 +25,10 @@ class ScikitMolServer:
             raise ValueError(f"Model must be a Pipeline, not {type(model)}")
         self.model = validate_pipeline(model)
         self.logger = logging.getLogger("uvicorn.error")
-        self.log_transformer: InvalidMolsLoggingTransformer = None
+        self.log_transformer = InvalidMolsLoggingTransformer(self.logger)
         if isinstance(model, str):
             self.model = pickle.load(open(model, "rb"))
+        self.model = add_pipeline_logging(self.model, self.log_transformer)
 
     def _create_app(self) -> FastAPI:
         app = FastAPI()
@@ -41,17 +42,15 @@ class ScikitMolServer:
             "/predict_proba",
             self._predict_proba,
             methods=["POST"],
-            response_model=PredictResponse,
+            response_model=PredictProbaResponse,
         )
         router.add_api_websocket_route("/ws/predict_proba", self._ws_predict_proba)
         app.include_router(router)
+
         return app
 
     def run(self, host: str = "localhost", port: int = 8000):
         app = self._create_app()
-        logger = logging.getLogger("uvicorn.error")
-        self.log_transformer = InvalidMolsLoggingTransformer(logger)
-        self.model = add_pipeline_logging(self.model, self.log_transformer)
         set_safe_inference_mode(self.model, True)
         uvicorn.run(app, host=host, port=port)
         return app
@@ -82,10 +81,10 @@ class ScikitMolServer:
             self.logger.info(f"Client disconnected after {i} messages")
             pass
 
-    def _predict_proba(self, data: PredictRequest):
-        result = list(self.model.predict_proba(data.smiles_list)[0])
-        result = [float(x) for x in result]
-        return PredictResponse(result=result, errors=self.log_transformer._last_info)
+    def _predict_proba(self, data: PredictProbaRequest):
+        result = self.model.predict_proba(data.smiles_list)
+        result = [[float(x) for x in item] for item in result]
+        return PredictProbaResponse(result=result, errors=self.log_transformer._last_info)
 
     async def _ws_predict_proba(self, websocket: WebSocket):
         await websocket.accept()
