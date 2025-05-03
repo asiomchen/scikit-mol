@@ -10,8 +10,10 @@ from sklearn.pipeline import Pipeline
 from scikit_mol._version import __version__ as scikit_mol_version
 from scikit_mol.safeinference import set_safe_inference_mode
 from scikit_mol.serve.log import InvalidMolsLoggingTransformer, add_pipeline_logging
-from .utils import validate_pipeline
+
 from .models import PredictRequest, PredictResponse
+from .utils import validate_pipeline
+
 
 class ScikitMolServer:
     def __init__(self, model: Union[Pipeline, str]):
@@ -31,13 +33,20 @@ class ScikitMolServer:
         app = FastAPI()
         router = APIRouter()
         app.add_api_route("/", self._read_root, methods=["GET"])
-        router.add_api_route("/predict", self._predict, methods=["POST"], response_model=PredictResponse)
+        router.add_api_route(
+            "/predict", self._predict, methods=["POST"], response_model=PredictResponse
+        )
         router.add_api_websocket_route("/ws/predict", self._ws_predict)
-        router.add_api_route("/predict_proba", self._predict_proba, methods=["POST"], response_model=PredictResponse)
+        router.add_api_route(
+            "/predict_proba",
+            self._predict_proba,
+            methods=["POST"],
+            response_model=PredictResponse,
+        )
         router.add_api_websocket_route("/ws/predict_proba", self._ws_predict_proba)
         app.include_router(router)
         return app
-    
+
     def run(self, host: str = "localhost", port: int = 8000):
         app = self._create_app()
         logger = logging.getLogger("uvicorn.error")
@@ -46,11 +55,13 @@ class ScikitMolServer:
         set_safe_inference_mode(self.model, True)
         uvicorn.run(app, host=host, port=port)
         return app
-    
+
     def _read_root(self):
-        return {"Model": str(self.model), 
-                "ScikitMol version": scikit_mol_version, 
-                "Python version": os.sys.version}
+        return {
+            "Model": str(self.model),
+            "ScikitMol version": scikit_mol_version,
+            "Python version": os.sys.version,
+        }
 
     def _predict(self, data: PredictRequest):
         result = list(self.model.predict(data.smiles_list))
@@ -75,7 +86,7 @@ class ScikitMolServer:
         result = list(self.model.predict_proba(data.smiles_list)[0])
         result = [float(x) for x in result]
         return PredictResponse(result=result, errors=self.log_transformer._last_info)
-    
+
     async def _ws_predict_proba(self, websocket: WebSocket):
         await websocket.accept()
         try:
