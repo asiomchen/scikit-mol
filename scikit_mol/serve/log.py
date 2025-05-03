@@ -38,7 +38,6 @@ class InvalidMolsLoggingTransformer(TransformerMixin, BaseEstimator):
         for idx, mol in enumerate(tmp_X):
             if isinstance(mol, InvalidMol):
                 msg = f"Invalid molecule at index {idx}. Error: {mol.error}"
-                print(msg)
                 logger.info(msg)
                 self._last_info[idx] = mol.error
         return X
