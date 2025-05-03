@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+from pathlib import Path
 from typing import Union
 
 import uvicorn
@@ -11,23 +12,26 @@ from scikit_mol._version import __version__ as scikit_mol_version
 from scikit_mol.safeinference import set_safe_inference_mode
 from scikit_mol.serve.log import InvalidMolsLoggingTransformer, add_pipeline_logging
 
-from .models import PredictRequest, PredictResponse, PredictProbaResponse, PredictProbaRequest
+from .models import (
+    PredictProbaRequest,
+    PredictProbaResponse,
+    PredictRequest,
+    PredictResponse,
+)
 from .utils import validate_pipeline
 
 
 class ScikitMolServer:
     def __init__(self, model: Union[Pipeline, str]):
         if isinstance(model, str):
-            if not os.path.exists(model):
+            if not Path(model).exists():
                 raise FileNotFoundError(f"Model file {model} does not exist.")
-            model = pickle.load(open(model, "rb"))
+            model = pickle.load(Path(model).open("rb"))  # noqa: S301
         if not isinstance(model, Pipeline):
             raise ValueError(f"Model must be a Pipeline, not {type(model)}")
         self.model = validate_pipeline(model)
         self.logger = logging.getLogger("uvicorn.error")
         self.log_transformer = InvalidMolsLoggingTransformer(self.logger)
-        if isinstance(model, str):
-            self.model = pickle.load(open(model, "rb"))
         self.model = add_pipeline_logging(self.model, self.log_transformer)
 
     def _create_app(self) -> FastAPI:
@@ -84,7 +88,9 @@ class ScikitMolServer:
     def _predict_proba(self, data: PredictProbaRequest):
         result = self.model.predict_proba(data.smiles_list)
         result = [[float(x) for x in item] for item in result]
-        return PredictProbaResponse(result=result, errors=self.log_transformer._last_info)
+        return PredictProbaResponse(
+            result=result, errors=self.log_transformer._last_info
+        )
 
     async def _ws_predict_proba(self, websocket: WebSocket):
         await websocket.accept()

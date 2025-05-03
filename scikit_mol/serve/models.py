@@ -15,6 +15,7 @@ class PredictResponse(BaseModel):
 class PredictProbaRequest(PredictRequest):
     pass
 
+
 class PredictProbaResponse(BaseModel):
     result: list[list[float]]
     errors: dict[int, str] | None = None
