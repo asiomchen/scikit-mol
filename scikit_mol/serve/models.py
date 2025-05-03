@@ -9,4 +9,12 @@ class PredictRequest(BaseModel):
 
 class PredictResponse(BaseModel):
     result: list[float]
-    errors: dict[int, str]
+    errors: dict[int, str] | None = None
+
+
+class PredictProbaRequest(PredictRequest):
+    pass
+
+class PredictProbaResponse(BaseModel):
+    result: list[list[float]]
+    errors: dict[int, str] | None = None

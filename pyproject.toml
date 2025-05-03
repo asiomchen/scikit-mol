@@ -94,6 +94,7 @@ exclude_lines = [
 
 [dependency-groups]
 dev = [
+    "anyio>=4.8.0",
     "ipykernel>=6.29.5",
     "jupytext==1.16.6",
     "pre-commit>=3.5.0",
@@ -101,6 +102,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "ruff==0.8.6",
     "seaborn>=0.13.2",
+    "trio>=0.30.0",
 ]
 docs = [
     "mkdocs>=1.6.1",
