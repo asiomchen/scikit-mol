@@ -74,9 +74,7 @@ class ScikitMolServer:
         }
 
     def _predict(self, data: PredictRequest):
-        result = list(self.model.predict(data.smiles_list))
-        result = [float(x) for x in result]
-        self.logger.error(self.log_transformer._last_info)
+        result = self.model.predict(data.smiles_list)
         return PredictResponse(result=result, errors=self.log_transformer._last_info)
 
     async def _ws_predict(self, websocket: WebSocket):
@@ -94,7 +92,6 @@ class ScikitMolServer:
 
     def _predict_proba(self, data: PredictProbaRequest):
         result = self.model.predict_proba(data.smiles_list)
-        print(f"Result: {result}")
         return PredictProbaResponse(
             result=result, errors=self.log_transformer._last_info
         )
