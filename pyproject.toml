@@ -45,6 +45,7 @@ Homepage = "https://github.com/EBjerrum/scikit-mol"
 [project.optional-dependencies]
 serve = [
     "fastapi[standard]>=0.115.8",
+    "orjson>=3.10.18",
 ]
 
 [tool.hatch]
