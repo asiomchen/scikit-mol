@@ -86,7 +86,10 @@ def filter_invalid_rows(warn_on_invalid=False, replace_value=np.nan):
 
             # handle case where all rows are masked e.g. single invalid input is passed
             if len(valid_indices) == 0:
-                result = np.array([])
+                if func.__name__ in ["predict_proba", "predict_log_proba"]:
+                    result = np.empty((X.shape[0], obj.estimator.n_classes_))
+                else:
+                    result = np.array([])
             else:
                 result = func(obj, reduced_X, reduced_y, *args, **kwargs)
 
