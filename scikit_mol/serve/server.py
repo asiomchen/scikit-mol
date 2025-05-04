@@ -2,10 +2,12 @@ import logging
 import os
 import pickle
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
+import orjson
 import uvicorn
 from fastapi import APIRouter, FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import JSONResponse
 from sklearn.pipeline import Pipeline
 
 from scikit_mol._version import __version__ as scikit_mol_version
@@ -35,7 +37,12 @@ class ScikitMolServer:
         self.model = add_pipeline_logging(self.model, self.log_transformer)
 
     def _create_app(self) -> FastAPI:
-        app = FastAPI()
+        app = FastAPI(
+            default_response_class=ORJSONResponse,
+            title="ScikitMol API",
+            description="ScikitMol API for serving models",
+            version=scikit_mol_version,
+        )
         router = APIRouter()
         app.add_api_route("/", self._read_root, methods=["GET"])
         router.add_api_route(
@@ -87,7 +94,7 @@ class ScikitMolServer:
 
     def _predict_proba(self, data: PredictProbaRequest):
         result = self.model.predict_proba(data.smiles_list)
-        result = [[float(x) for x in item] for item in result]
+        print(f"Result: {result}")
         return PredictProbaResponse(
             result=result, errors=self.log_transformer._last_info
         )
@@ -104,3 +111,10 @@ class ScikitMolServer:
         except WebSocketDisconnect:
             self.logger.info(f"Client disconnected after {i} messages")
             pass
+
+
+class ORJSONResponse(JSONResponse):
+    media_type = "application/json"
+
+    def render(self, content: Any) -> bytes:
+        return orjson.dumps(content)
