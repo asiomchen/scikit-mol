@@ -21,10 +21,11 @@ from .models import (
     PredictResponse,
 )
 from .utils import validate_pipeline
+from contextlib import asynccontextmanager
 
 
 class ScikitMolServer:
-    def __init__(self, model: Union[Pipeline, str]):
+    def __init__(self, model: Union[Pipeline, str], description: str = None):
         if isinstance(model, str):
             if not Path(model).exists():
                 raise FileNotFoundError(f"Model file {model} does not exist.")
@@ -35,32 +36,35 @@ class ScikitMolServer:
         self.logger = logging.getLogger("uvicorn.error")
         self.log_transformer = InvalidMolsLoggingTransformer(self.logger)
         self.model = add_pipeline_logging(self.model, self.log_transformer)
+        self.description = description
 
     def _create_app(self) -> FastAPI:
         app = FastAPI(
             default_response_class=ORJSONResponse,
             title="ScikitMol API",
-            description="ScikitMol API for serving models",
+            description="ScikitMol API for serving models" if not self.description else self.description,
             version=scikit_mol_version,
+            
         )
         router = APIRouter()
-        app.add_api_route("/", self._read_root, methods=["GET"])
+        app.add_api_route("/", self._read_root, methods=["GET"], summary="Model info")
         router.add_api_route(
             "/predict", self._predict, methods=["POST"], response_model=PredictResponse
         )
         router.add_api_websocket_route("/ws/predict", self._ws_predict)
-        router.add_api_route(
-            "/predict_proba",
-            self._predict_proba,
-            methods=["POST"],
-            response_model=PredictProbaResponse,
-        )
-        router.add_api_websocket_route("/ws/predict_proba", self._ws_predict_proba)
+        if hasattr(self.model, "predict_proba"):
+            router.add_api_route(
+                "/predict_proba",
+                self._predict_proba,
+                methods=["POST"],
+                response_model=PredictProbaResponse,
+            )
+            router.add_api_websocket_route("/ws/predict_proba", self._ws_predict_proba)
         app.include_router(router)
 
         return app
 
-    def run(self, host: str = "localhost", port: int = 8000):
+    def run(self, host: str = "localhost", port: int = 8000, **kwargs) -> FastAPI:
         app = self._create_app()
         set_safe_inference_mode(self.model, True)
         uvicorn.run(app, host=host, port=port)
